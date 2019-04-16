@@ -1,5 +1,7 @@
-> 注：md文件，Typora书写，有些格式可能不太支持。各个平台修改起来比较麻烦，所以github会上传md文档https://github.com/FermHan/Learning-Notes ，可下载用markdown文件查看。
-> 发表在CSDN：https://blog.csdn.net/hancoder/article/details/89048870 
+> 注：md文件，Typora书写，md兼容程度github=CSDN>知乎，若有不兼容处麻烦移步其他平台，github文档供下载。
+>
+> 上传在github：https://github.com/FermHan/Learning-Notes 
+> 发表在CSDN：https://blog.csdn.net/hancoder/article/
 > 发表在知乎专栏：https://zhuanlan.zhihu.com/c_1088438808227254272
 
 预备知识：
@@ -8,6 +10,8 @@ Faster R-CNN，RPN可见本人博客https://blog.csdn.net/hancoder/article/detai
 ## Feature Pyramid Networks for Object Detection （简称FPN）
 
 作者Tusing-Yi Lin,Ross Girshich,Kaiming He
+
+[TOC]
 
 ## 1、常见卷积与FPN模型
 
@@ -89,6 +93,8 @@ Bottom-up的画的是每个stage的最后一层feature，这个我们已经前�
 
 ![Faster R-CNN + FPN](https://raw.githubusercontent.com/FermHan/tuchuang/master/20190408105937.jpg)
 
+由上图可以看出，我们的C2-C5是正常卷积出来的，P5是1×1卷积改变通道数256后的结果，其余P4,P3,P2是1×1卷积和上采样加和的融合。然后P2-P5经过3×3卷积后仍然叫P2-P5（Pi处理后赋值给Pi）。P6是从P5极大值池化后直接得到的
+
 ## 3、应用
 
 ### FPN for RPN
@@ -99,7 +105,7 @@ RPN即一个用于目标检测的一系列滑动窗口。具体地，RPN是先�
 
 在FPN中我们同样用了一个3×3和两个并行的1×1，但是是在每个级上都进行了RPN这种操作。既然FPN已经有不同大小的特征scale了，那么我们就没必要像Faster R-CNN一样采用3中大小的anchor了，我们只要采用3种比率的框就行了。所以每个级`level`的anchor都是相同的scale。所以我们在$\{P_2,P_3,P_4,P_5,P_6\}$上分别定义anchor的scale为$\{32^2,64^2,128^2,256^2,521^2\}$，在每级`level`的$P_i$上有{1:1，1:2，2:1}三种宽高比率`ratio`的框。所以我们在特征金字塔上总共有15个anchor。
 
-RPN训练时需要有anchor的前背景类标。对anchor进行label的原理和Faster R-CNN里一模一样，详情可以去本人博客https://blog.csdn.net/hancoder/article/details/87917174 的RPNlabel部分查看。反正就是与gt的IoU＞0.7就是正类，IoU＜0.3是负类背景，其余介于0.3和0.7直接的都扔掉不看。
+RPN**训练时**需要有anchor的前背景类标。对anchor进行label的原理和Faster R-CNN里一模一样，详情可以去本人博客https://blog.csdn.net/hancoder/article/details/87917174 的RPNlabel部分查看。反正就是与gt的IoU＞0.7就是正类label=1，IoU＜0.3是负类背景label=0，其余介于0.3和0.7直接的都扔掉不参与训练label=-1。在faster rcnn中拿256个anchors训练后得到W×H×9个roi。
 
 此外，每个级level的头部的参数是共享的，共享的原因是实验验证出来的。实验证明，虽然每级的feature大小不一样，但是共享与不共享头部参数的准确率是相似的。这个结果也说明了其实金字塔的每级level都有差不多相似的语义信息，而不是普通网络那样语义信息区别很大。
 
@@ -193,6 +199,7 @@ A：作者觉得经过精细调整训练是可能的，但是 image pyramid 主�
 ## 6、代码实现
 
 ```python
+# 在此贴出Pi卷积层的代码，帮助理解
 # Build the shared convolutional layers.
 # Bottom-up Layers
 # Returns a list of the last layers of each stage, 5 in total.
