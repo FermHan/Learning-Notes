@@ -1,0 +1,258 @@
+主要函数
+```PHP
+★★★$m_conn = mysqli_connect($server服务器IP, $user用户名, $pwd密码, '', $port端口);
+★★★mysqli_select_db($m_conn, 库名);
+★★★$ret = mysqli_query($m_conn, $cmd命令);
+
+★★★$rows = mysqli_num_rows($result必需)// 返回结果集中行的数量
+- result必需。规定由 mysqli_query()、mysqli_store_result() 或 mysqli_use_result() 返回的结果集标识符。
+    
+★★★$videoId = mysqli_insert_id($m_conn);//返回一个在最后一个查询中自动生成的带有 AUTO_INCREMENT 字段值的整数。如果数字 > 最大整数值，它将返回一个字符串。如果没有更新或没有 AUTO_INCREMENT 字段，将返回 0。
+
+★★★$row = mysqli_fetch_array(result,resulttype);//从结果集中取得一行作为关联数组，或数字数组，或二者兼有。返回与读取行匹配的字符串数组。如果结果集中没有更多的行则返回 NULL。
+- result	必需。规定由 mysqli_query()、mysqli_store_result() 或 mysqli_use_result() 返回的结果集标识符。
+- resulttype	可选。规定应该产生哪种类型的数组。可以是以下值中的一个：
+---- MYSQLI_ASSOC关联数组    - MYSQLI_NUM数字数组    - MYSQLI_BOTH 默认。同时产生关联和数字数组
+/*
+Array
+(
+[0] => Adams
+[LastName] => Adams
+[1] => John
+[FirstName] => John
+[2] => London
+[City] => London
+) 
+*/★★★mysqli_fetch_all
+★★★while ($row=mysqli_fetch_row($result))
+    {
+        printf ("%s : %s",$row[0],$row[1]);
+        echo "<br>";
+    }
+    
+★★★mysqli_free_result(result);//释放结果内存。mysql_free_result() 仅需要在考虑到返回很大的结果集时会占用多少内存时调用。在脚本结束后所有关联的内存都会被自动释放。
+- result   必需。规定由 mysqli_query()、mysqli_store_result() 或 mysqli_use_result() 返回的结果集标识符。
+    
+
+    
+★★★mysqli_close($conn); // 或 $conn->close();
+```
+```PHP
+<?php
+class MySQL_Wrapper
+{   
+	var $conn;//数据库变量
+	private $m_status = 0;
+
+	public function InitDB()
+	{
+//		if ($this->ConnectDB('localhost', '3306', 'root', 'Ast4HS') < 0)
+		if ($this->ConnectDB('127.0.0.1', '3306', 'root', 'root') < 0)
+		{
+			return -1;
+		}
+//		if ($this->SelectDB('astvs1v20_db') != 0)
+		if ($this->SelectDB('astvs1v20_db') != 0)
+		{
+			return -2;
+		}
+		return 0;
+	}
+	
+	
+	public function ConnectDB($server, $port, $user, $pwd)
+	{				
+//		$this->m_conn = mysql_connect('.',$user, $pwd,1,131072);//尝试使用命名管道连接mysql	
+		$this->m_conn = mysqli_connect($server, $user, $pwd, '', $port);
+		if(!$this->m_conn)
+		{
+//		  $this->m_conn = mysql_connect($server.':'.$port, $user, $pwd,1,131072);
+		}
+		if (!$this->m_conn) 
+		{
+			return -3;
+		}
+		return $this->m_conn;
+	}
+	
+	public function SelectDB($dbName)
+	{
+		$this->m_dbName = $dbName;
+		if (!$this->m_conn)
+		{
+			return -4;
+		}
+			
+//		if (!mysql_select_db($dbName, $this->m_conn))
+		if (!mysqli_select_db($this->m_conn, $dbName))
+		{
+			return -5;
+		}
+		$this->m_status = 1;
+		return 0;
+	}
+	
+	public function CloseDB()
+	{
+		if ($this->m_status != 1)
+		{
+			return -6;
+		}
+//		mysql_close($this->m_conn);
+		mysqli_close($this->m_conn);
+	}  
+	
+    // 添加转码任务
+	public function AddTranscodeTask($srcUrl,$destUrl,$video_type,$fps)//insert之后返回id
+	{
+		$videoId = 0;//返回值
+//		$cmd  = "INSERT INTO useruploadvideo (srcURL,destURL,last_try_video_vendor_type) VALUES ('$srcUrl', '$destUrl', $video_type)";
+//		$cmd  = "INSERT INTO useruploadvideo (srcURL,destURL,last_try_video_vendor_type,progress,status) VALUES ('$srcUrl', '$destUrl', $video_type,'100','1')";
+//		$cmd  = "INSERT INTO useruploadvideo (srcURL,destURL,last_try_video_vendor_type,progress,status,resolution,duration,framecount,space,frame_rate,video_type) VALUES ('$srcUrl', '$destUrl', $video_type,'100','1','320x240',39,975,1,25,0)";
+		$cmd  = "INSERT INTO useruploadvideo (srcURL,destURL,last_try_video_vendor_type,progress,status,resolution,duration,framecount,space,frame_rate,video_type) VALUES ('$srcUrl', '$destUrl', $video_type,'100','1','',0,0,0,$fps,0)";
+插入一行数据，需要制定的内容包括：
+    源和目的url，最后尝试的视频售卖机类型=-1
+    进程process=100，状态status=1
+    分辨率resolution=''
+    持续duration
+    帧数framecount
+    空间space=0
+    帧率frame_rate=24//默认25
+    视频类型video_type=0
+    
+
+//		$ret = mysql_query($cmd ,$this->m_conn);
+		$ret = mysqli_query($this->m_conn, $cmd);
+		if($ret)
+		{
+//			$videoId = mysql_insert_id();
+			$videoId = mysqli_insert_id($this->m_conn);//返回最后一个查询中生成的带有自增字段值的整数，没有更新则返回0
+		}
+		else
+		{
+			$cmd  = "INSERT INTO useruploadvideo (CameraID,timestamp,record_time,userid,srcURL,destURL,status,last_err_code,last_err_msg,progress,retry_count,last_try_video_vendor_type)
+										  VALUES (0,NOW(),NOW(),0,'$srcUrl', '$destUrl',0,0,'',0,0,  $video_type)";
+//			$ret = mysql_query($cmd ,$this->m_conn);
+			$ret = mysqli_query($this->m_conn, $cmd);
+//			$videoId = mysql_insert_id();
+			$videoId = mysqli_insert_id($this->m_conn);
+		}
+		return $videoId;
+	}
+	
+	public function QueryTranscodeStatus($videoid)
+	{
+//		$ret = mysql_query("select status,progress,resolution,duration,space,frame_rate, destURL,framecount from useruploadvideo where UserUploadVideoId = $videoid;",$this->m_conn);
+		$ret = mysqli_query($this->m_conn, "select status,progress,resolution,duration,space,frame_rate, destURL,framecount from useruploadvideo where UserUploadVideoId = $videoid;");//查询指定id的信息
+		if($ret)
+		{
+//			if (mysql_num_rows($ret) == 0)
+			if (mysqli_num_rows($ret) == 0)
+			{
+				return null;
+			}
+			
+//			$row = mysql_fetch_array($ret);
+			$row = mysqli_fetch_array($ret);//用select查询的值生成一个字典
+			$retArray["ret"] = 0;
+			$retArray["desc"] = "successful";
+			$retArray["status"] = $row["status"];
+			$retArray["progress"]= $row["progress"];
+			$retArray["resolution"] =$row["resolution"];
+			$retArray["duration"] = $row["duration"];
+			$retArray["framerate"] = $row["frame_rate"];
+			$retArray["framecount"] = $row["framecount"];
+			$retArray["filepath"] = $row["destURL"];
+			
+			mysqli_free_result($ret);//释放ret，但是row和retArray还在
+			
+			return $retArray;
+		}
+		return null;
+	}
+	
+	public function UpdateFrameCount($videoid,$framecount)//把指定视频id的帧数framecount设置为指定值
+	{
+//		$ret = mysql_query("update useruploadvideo set framecount = $framecount where UserUploadVideoId = $videoid;",$this->m_conn);
+		$ret = mysqli_query($this->m_conn, "update useruploadvideo set framecount = $framecount where UserUploadVideoId = $videoid;");//这里update
+		return $ret;
+	}
+	
+	public function DeleteTranscodeTask($videoid)//删除指定id的任务，并返回destURL
+	{
+		$destFile = "";
+//		$ret = mysql_query("select destURL from useruploadvideo where UserUploadVideoId = $videoid;",$this->m_conn);
+		$ret = mysqli_query($this->m_conn, "select destURL from useruploadvideo where UserUploadVideoId = $videoid;");//先查询后删除
+		if($ret)
+		{
+//			if (mysql_num_rows($ret) == 0)
+			if (mysqli_num_rows($ret) == 0)
+			{
+				return $destFile;
+			}
+//			$row = mysql_fetch_array($ret);
+			$row = mysqli_fetch_array($ret);
+			$destFile =  $row["destURL"];
+		}
+//		$ret = mysql_query("delete from useruploadvideo where UserUploadVideoId = $videoid;",$this->m_conn);
+		$ret = mysqli_query($this->m_conn, "delete from useruploadvideo where UserUploadVideoId = $videoid;");
+		return $destFile;
+	}
+}
+?>
+
+```
+
+
+
+## 关闭连接
+
+连接在脚本执行完后会自动关闭。你也可以使用以下代码来关闭连接：
+
+##### 实例 (MySQLi - 面向对象)
+
+`$conn->close();`
+
+##### 实例 (MySQLi - 面向过程)
+
+`mysqli_close($conn);`
+
+##### 实例 (PDO)
+
+`$conn = null;`
+```
+if ($conn->query($sql) === TRUE) {
+echo "数据库创建成功";
+} else {
+echo "Error creating database: " . $conn->error;
+}
+```
+
+```
+<?php 
+// 假定数据库用户名：root，密码：123456，数据库：RUNOOB 
+
+$con=mysqli_connect("localhost","root","123456","RUNOOB"); 
+if (mysqli_connect_errno($con)) 
+{ 
+    echo "连接 MySQL 失败: " . mysqli_connect_error(); 
+} 
+ 
+$sql="SELECT name,url FROM websites ORDER BY alexa";
+ 
+if ($result=mysqli_query($con,$sql))
+{
+    // 一行行获取
+    while ($row=mysqli_fetch_row($result))
+    {
+        printf ("%s : %s",$row[0],$row[1]);
+        echo "<br>";
+    }
+    // 释放结果集
+    mysqli_free_result($result);
+}
+ 
+mysqli_close($con);
+?>
+```
+

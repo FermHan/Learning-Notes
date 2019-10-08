@@ -1,0 +1,327 @@
+[TOC]
+
+我们或多或少都见过别人使用xftp或者网页直接操作远程文件，看着很高大上，掌握了这个技能就可以把linux的图形化界面丢掉使用命令行了~
+
+![](https://raw.githubusercontent.com/FermHan/tuchuang/master/20190918155054.png)
+
+本文讲解ubuntu如何配置ftp。
+
+## 1.用户创建
+
+创建的这个用户并不是ftp的用户，而是Ubuntu系统用户，比如原来`/home/`下已经有了一个用户user123，那么再创建后，相当于创建了一个与user1差不多级别的用户。而新用户的家目录也是可以选择的，但最好还是放在`/home/`目录下，比较直观。
+
+比如我们要创建一个用户：名为`ftpuser`。名后加个user以区别是我们建的还是ftp软件自己建的内容。因为我一开始安装的时候总分不清命令里的名称代表的是目录还是用户名。
+
+最好先把新建用户的家目录创建好，比如下面语句。
+
+```BASH
+mkdir /home/ftpfile    
+chmod -R 777 /home/ftpfile
+# 更改一下权限
+# 后面的命令需要权限的话，命令前加sudo
+```
+
+为什么最好先创建ftp1目录呢？因为我在之前实验的时候发现创建了用户后，指定用户的家目录，系统并不会自动生成此目录，还是需要手动创建，所以我们就先创建好。然后输入：
+
+```BASH
+sudo useradd -d /home/ftpfile  ftpuser
+sudo passwd ftpuser
+# 输入密码并确认
+```
+
+> 附安装可能使用的其他知识：
+>
+> useradd命令参数表示：最后一个为用户名，-d后面指定家目录
+>
+> useradd [－d home] [－s shell] [－c comment] [－m [－k template]] [－f inactive] [－e expire ] [－p passwd] [－r] name
+>
+> .主要参数
+> －c：加上备注文字，备注文字保存在passwd的备注栏中。　
+> －d：指定用户登入时的启始目录。***********
+> －D：变更预设值。
+> －e：指定账号的有效期限，缺省表示永久有效。
+> －f：指定在密码过期后多少天即关闭该账号。
+> －g：指定用户所属的群组。
+> －G：指定用户所属的附加群组。
+> －m：自动建立用户的登入目录。
+> －M：不要自动建立用户的登入目录。
+> －n：取消建立以用户名称为名的群组。
+> －r：建立系统账号。
+> －s：指定用户登入后所使用的shell。
+> －u：指定用户ID号。
+>
+> ------------如果中途出错需要删除用户的话------------
+>
+> 删除用户：userdel name
+>
+> 
+
+## 2.安装 vsftpd服务器
+
+```BASH
+sudo apt install vsftpd
+```
+
+> 附安装可能使用的其他知识：
+>
+> vim:这里只需要简单知道：
+>
+> vim后刚进入的是基本模式，不能编辑，可以使用hjkl键左下上右，但不熟悉的话最好不要瞎按，直接按个i，进入插入模式，就可以正常打字了。
+>
+> 写好之后按ESC，然后输入`:wq`，若不成功，可能是没有加sudo或者没有给文件夹权限 chmod -R 777  文件目录/文件名
+
+
+
+## 3.ftp配置与测试
+
+输入`vim  /etc/vsftpd.conf`修改配置文件，没有的语句要自己加上，有些语句商家只是给注释了，把#去掉即可。
+
+```BASH
+# Example config file /etc/vsftpd.conf
+#
+# The default compiled in settings are fairly paranoid. This sample file
+# loosens things up a bit, to make the ftp daemon more usable.
+# Please see vsftpd.conf.5 for all compiled in defaults.
+#
+# READ THIS: This example file is NOT an exhaustive list of vsftpd options.
+# Please read the vsftpd.conf.5 manual page to get a full idea of vsftpd's
+# capabilities.
+#
+#
+# Run standalone?  vsftpd can run either from an inetd or as a standalone
+# daemon started from an initscript.
+listen=NO # 服务器监听  
+#
+# This directive enables listening on IPv6 sockets. By default, listening
+# on the IPv6 "any" address (::) will accept connections from both IPv6
+# and IPv4 clients. It is not necessary to listen on *both* IPv4 and IPv6
+# sockets. If you want that (perhaps because you want to listen on specific
+# addresses) then you must run two copies of vsftpd with two configuration
+# files.
+listen_ipv6=YES
+#
+# Allow  anonymous FTP? (Disabled by default).
+anonymous_enable=NO # 匿名访问允许，默认不要开启，  
+#
+# Uncomment this to allow local users to log in.
+local_enable=YES # 是否允许本地用户访问  
+#
+# Uncomment this to enable any form of FTP write command.
+write_enable=YES # 是否允许上传文件，不开启会报 550 permission denied  
+#
+# Default umask for local users is 077. You may wish to change this to 022,
+# if your users expect that (022 is used by most other ftpd's)
+local_umask=022 # FTP上本地的文件权限，默认是077  022?
+#
+# Uncomment this to allow the anonymous FTP user to  upload files. This only
+# has an effect if the above global write enable is activated. Also, you will
+# obviously need to create a directory writable by the FTP user.
+#anon_upload_enable=YES # 匿名上传允许，默认是NO  
+#
+# Uncomment this if you want the anonymous FTP user to be able to create
+# new directories.
+#anon_mkdir_write_enable=YES  # 匿名创建文件夹允许  
+#
+# Activate directory messages - messages given to remote users when they
+# go into a certain directory.
+dirmessage_enable=YES # 进入文件夹允许  
+#
+# If enabled, vsftpd will display directory listings with the time
+# in  your  local  time  zone.  The default is to display GMT. The
+# times returned by the MDTM FTP command are also affected by this
+# option.
+use_localtime=YES
+#
+# Activate logging of uploads/downloads.
+xferlog_enable=YES # ftp 日志记录允许  
+#
+# Make sure PORT transfer connections originate from port 20 (ftp-data).
+connect_from_port_20=YES # 启用20号端口作为数据传送的端口  
+#
+# If you want, you can arrange for uploaded anonymous files to be owned by
+# a different user. Note! Using "root" for uploaded files is not
+# recommended!
+#chown_uploads=YES
+#chown_username=whoever
+#
+# You may override where the log file goes if you like. The default is shown
+# below.
+xferlog_file=/var/log/vsftpd.log
+#
+# If you want, you can have your log file in standard ftpd xferlog format.
+# Note that the default log file location is /var/log/xferlog in this case.
+xferlog_std_format=YES
+#
+# You may change the default value for timing out an idle session.
+#idle_session_timeout=600
+#
+# You may change the default value for timing out a data connection.
+#data_connection_timeout=120
+#
+# It is recommended that you define on your system a unique user which the
+# ftp server can use as a totally isolated and unprivileged user.
+#nopriv_user=ftpsecure
+#
+# Enable this and the server will recognise asynchronous ABOR requests. Not
+# recommended for security (the code is non-trivial). Not enabling it,
+# however, may confuse older FTP clients.
+#async_abor_enable=YES
+#
+# By default the server will pretend to allow ASCII mode but in fact ignore
+# the request. Turn on the below options to have the server actually do ASCII
+# mangling on files when in ASCII mode.
+# Beware that on some FTP servers, ASCII support allows a denial of service
+# attack (DoS) via the command "SIZE /big/file" in ASCII mode. vsftpd
+# predicted this attack and has always been safe, reporting the size of the
+# raw file.
+# ASCII mangling is a horrible feature of the protocol.
+#ascii_upload_enable=YES
+#ascii_download_enable=YES
+#
+# You may fully customise the login banner string:
+ftpd_banner=Welcome to blah FTP service.# 欢迎信息  
+#
+# You may specify a file of disallowed anonymous e-mail addresses. Apparently
+# useful for combatting certain DoS attacks.
+#deny_email_enable=YES
+# (default follows)
+#banned_email_file=/etc/vsftpd.banned_emails
+#
+# You may restrict local users to their home directories.  See the FAQ for
+# the possible risks in this before using chroot_local_user or
+# chroot_list_enable below.
+#chroot_local_user=YES  # 用于指定用户列表文件中的用户是否允许切换到上级目录。默认值为NO。  
+#
+# You may specify an explicit list of local users to chroot() to their home
+# directory. If chroot_local_user is YES, then this list becomes a list of
+# users to NOT chroot().
+# (Warning! chroot'ing can be very dangerous. If using chroot, make sure that
+# the user does not have write access to the top level directory within the
+# chroot)
+chroot_local_user=YES
+chroot_list_enable=YES # 设置是否启用chroot_list_file配置项指定的用户列表文件。默认值为NO。  
+# user_sub_token=$USER 最初加上这句使我安装不成功
+local_root=/home/ftpfile # 设置一个本地用户登录后进入到的目录，可以定义其他目录，与刚才用户创建的目录无关，但最好放这里
+# (default follows)
+chroot_list_file=/etc/vsftpd.chroot_list # 格式为一行一个用户，用于指定用户列表文件，该文件用于控制哪些用户可以切换到用户家目录的上级目录。
+#
+# You may activate the "-R" option to the builtin ls. This is disabled by
+# default to avoid remote users being able to cause excessive I/O on large
+# sites. However, some broken FTP clients such as "ncftp" and "mirror" assume
+# the presence of the "-R" option, so there is a strong case for enabling it.
+#ls_recurse_enable=YES
+#
+# Customization
+#
+# Some of vsftpd's settings don't fit the filesystem layout by
+# default.
+#
+# This option should be the name of a directory which is empty.  Also, the
+# directory should not be writable by the ftp user. This directory is used
+# as a secure chroot() jail at times vsftpd does not require filesystem
+# access.
+secure_chroot_dir=/var/run/vsftpd/empty
+#
+# This string is the name of the PAM service vsftpd will use.
+# !!!!!!!!!!!****************************!!!!!!!! 
+pam_service_name=ftp
+# !!!!!!!!!!!****************************!!!!!!!! 一定要把上句改好，
+#
+# This option specifies the location of the RSA certificate to use for SSL
+# encrypted connections.
+rsa_cert_file=/etc/ssl/certs/ssl-cert-snakeoil.pem
+rsa_private_key_file=/etc/ssl/private/ssl-cert-snakeoil.key
+ssl_enable=NO
+
+#
+# Uncomment this to indicate that vsftpd use a utf8 filesystem.
+utf8_filesystem=YES
+```
+
+
+
+然后编辑/etc/vsftpd.chroot_list文件，将ftpuser的帐户名添加进去，保存退出。这里不截图了，就是这个文件里写上创建的用户名即可。
+
+```BASH
+vim /etc/vsftpd.chroot_list # 加入创建的用户ftpuser
+```
+
+重新启动vsftpd：
+
+```BASH
+sudo service vsftpd restart  
+# 注：修改配置文件后一定要重启服务才能生效
+```
+
+上句之后在命令行输入下句，查看之前步骤是否成功，不成功的话下面显示的不是running
+
+```BASH
+service vsftpd status
+```
+
+
+
+![](https://raw.githubusercontent.com/FermHan/tuchuang/master/20190918162419.png)
+
+
+
+> 附安装可能使用的其他知识：
+>
+> 配置文件解释：https://www.cnblogs.com/acpp/archive/2010/02/08/1666054.html
+>
+> --------------------------------------------------.
+>
+> 卸载vsftpd
+>
+> sudo apt-get remove --purge vsftpd
+>
+> (--purge 选项表示彻底删除改软件和相关文件)
+>
+> --------------------------------------------------.
+>
+> PS:  有关ftp端口。
+>
+> ftp服务有两个端口，默认情况下，一个是20端口，另一个是21端口。21端口用于连接，20端口用于数据传输。
+> 进行ftp文件传输，客户端首先连接到ftp服务器的21端口，进行用户的认证，认证成功后，要传输文件时，ftp服务器会开一个端口20来进行传输数据文件。
+> --------------------------------------------------.
+>
+> 命令行输入`ifconfig`可以查看该远程IP
+>
+> --------------------------------------------------.
+>
+> 检查FTP端口是否已经打开：
+>
+> --------------------------------------------------.
+>
+> 开启、停止、重启vsftpd服务的命令：
+>
+> 1. service vsftpd start | stop | restart  
+
+## 4.测试与使用
+
+可以在windows下cmd下使用下面语句访问目录。
+
+```BASH
+ftp IP号
+使用get 文件名下载
+```
+
+![](https://raw.githubusercontent.com/FermHan/tuchuang/master/20190918164146.png)
+
+或使用xftp或Windows的文件菜单直接浏览。windows位置中直接输入`ftp://ip地址`即可。
+
+xftp破解地址：https://blog.csdn.net/u011622631/article/details/88991941
+
+![](https://raw.githubusercontent.com/FermHan/tuchuang/master/20190918155054.png)
+
+
+
+
+
+潜在的问题：
+
+无法登录：ftp: connect: Connection refused
+同时ipv4和ipv6同时运行服务器报错。vsftpd.conf文件里的#listen_ipv6=YES被取消注释了。
+于是将上面那句注释掉，就可以啦。
+我的网是ipv6的，但是注释掉不影响，依然可以ipv4和ipv6都可以。
+但是如果listen=YES和listen_ipv6=YES同时在就会报错。

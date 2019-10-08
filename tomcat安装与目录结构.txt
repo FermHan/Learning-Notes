@@ -1,0 +1,375 @@
+[TOC]
+
+
+
+# 一.web环境搭建
+
+## 1.1.   Web服务器
+
+（1） Web服务器主要用来接收客户端发送的请求和响应客户端请求。
+
+（2）  作为JavaWeb程序来说，还需要有Servlet容器，容器的主要作用就是调用java程序处理用户发送的请求，并响应指定的资源，关于Servlet容器我们还需要一点一点学习。
+
+（3） 开发JavaWeb项目Web服务器和Servlet容器是必须的，通常情况二者是合在一起的。
+
+（4）  常见的JavaWeb服务器：
+
+- Tomcat（Apache）：当前应用最广的JavaWeb服务器；
+- JBoss（Redhat红帽）：支持JavaEE，应用比较广；
+- GlassFish（Orcale）：Oracle开发JavaWeb服务器，应用不是很广；
+- Resin（Caucho）：支持JavaEE，应用越来越广；
+- Weblogic（Orcale）：要钱的！支持JavaEE，适合大型项目；
+- Websphere（IBM）：要钱的！支持JavaEE，适合大型项目；
+
+## 1.2.   Tomcat
+
+### 1.2.1 Tomcat概述
+
+（1）.  Tomcat是Apache 软件基金会（Apache Software Foundation）的Jakarta 项目中的一个核心项目，由Apache、Sun 和其他一些公司及个人共同开发而成。由于有了Sun 的参与和支持，最新的Servlet 和JSP 规范总是能在Tomcat 中得到体现，因为Tomcat 技术先进、性能稳定，而且免费，因而深受Java 爱好者的喜爱并得到了部分软件开发商的认可，成为目前比较流行的==Web 应用服务器==。目前最新版本是9.0。
+
+Tomcat服务器是一个免费的开源代码的web应用服务器，属于轻量级应用服务器，在中小型系统和并发访问用户不是很多的场合下被普遍使用，是==开发和调试JSP程序的首选==。
+
+JSP全称Java Server Pages称为java服务器页面，是一种动态网页开发技术。它使用JSP标签在HTML网页中插入Java代码。标签通常以<%开头以%>结束。
+
+（2）  Tomcat6.0 支持Servlet 2.5
+
+（3） **Tomcat7.0** **支持Servlet3.0**
+
+（4） Tomcat8.0 支持Servlet 3.1
+
+### 1.2.2 安装、启动、配置Tomcat
+
+####       1.2.2.1 下载
+
+（1）  Tomcat官方网站：http://tomcat.apache.org/
+
+（2）  安装版：需要安装，一般不考虑使用。**一个电脑只能安装一个！卸载也比较麻烦！**
+
+（3）  解压版: 直接解压缩使用，我们使用的版本。
+
+（4）  版本：目前Tomcat的最新版本为8.0。我们使用的是7.0版本。
+
+#### 　1.2.2.2 安装
+
+（1）  直接把Tomcat的压缩包解压到安装目录，例如：D:\tomcat-7。
+
+（2） D:\tomcat-7，这个目录下直接包含Tomcat的bin目录，conf目录等，我们称之为Tomcat的安装目录或根目录。
+
+####   1.2.2.3启动和停止
+
+  环境变量的配置：
+
+①  ==JAVA_HOME==：jdk的安装目录，**Tomcat依赖于JDK，所以必须指定该环境变量。**Tomcat只需要这一个环节变量
+
+![img](https://images2017.cnblogs.com/blog/1273365/201711/1273365-20171113182052812-1072139198.png)
+
+② ==CATALINA_HOME==：tomcat的安装目录，在终端（CMD）启用时，需要配置，不必须。
+
+③PATH:安装jdk的bin目录，%JAVA_HOME%\bin
+
+![img](https://images2017.cnblogs.com/blog/1273365/201711/1273365-20171113182204124-291921397.png)
+
+④启动：在Tomcat安装目录下的bin目录，双击startup.bat
+
+⑤停止：在Tomcat安装目录下的bin目录，双击shutdown.bat
+
+ 
+
+注意： startup.bat会调用catalina.bat，而catalina.bat会调用setclasspath.bat，setclasspath.bat会使用JAVA_HOME环境变量，所以我们必须在启动Tomcat之前把JAVA_HOME配置正确。如果JAVA_HOME配置不正确，就会导致startup.bat一闪而过!
+
+问题：如果双击startup.bat后窗口一闪而过，请查看JAVA_HOME是否配置正确。
+
+#### 1.2.2.4访问Tomcat
+
+  打开浏览器地址栏输入：http://localhost:8080 （IE中不能省略http）
+
+#### 1.2.2.5 配置端口号
+
+  打开Tomcat安装目录下的conf/server.xml              
+
+（1） 端口：web服务器在启动时，实际上是监听了本机上的一个端口，当有客户端向该端口发送请求时，web服务器就会处理请求。但是如果不是向其所监听的端口发送请求，web服务器不会做任何响应。默认的端口是8080.例如：Tomcat启动监听了80端口，而访问的地址是[http://localhost:8080](http://localhost:8080/)，将不能正常访问。
+
+（2）80端口：80端口是http协议默认的端口号，也就是说如果在url中不指定端口号那默认会向80端口发送请求。
+
+>处理tomcat端口占用问题
+>
+>（1）打开cmd输入命令：netstat -ano|findstr 8080
+>
+>查看占用8080端口的进程
+>
+>（2）输入命令：taskkill /pid 8768 /f
+>
+>将占用端口号结束进程
+>
+>![img](https://images2017.cnblogs.com/blog/1273365/201711/1273365-20171113212440031-234092346.png)
+
+#### 1.2.2.6 Tomcat目录结构
+
+![](https://raw.githubusercontent.com/FermHan/tuchuang/master/20190928162943.png)
+
+（1） bin：该目录下存放的是二进制的可执行文件，如果是安装版，那么这个目录下会有两个exe文件：tomcat6.exe、tomcat6w.exe，前者是在控制台下启动Tomcat，后者是弹出GUI窗口启动Tomcat；
+
+如果是解压版，那么会有**startup.bat和shutdown.bat**文件，startup.bat用来启动Tomcat，但需要先配置JAVA_HOME环境变量才能启动，shutdawn.bat用来停止Tomcat；
+
+（2） conf：这是一个非常非常重要的目录，这个目录下有四个最为重要的文件：
+
+- **server.xml**：配置整个服务器信息。例如修改端口号，添加虚拟主机等；下面会详细介绍这个文件；
+- tomcatusers.xml：存储tomcat用户的文件，这里保存的是tomcat的用户名及密码，以及用户的角色信息。可以按着该文件中的注释信息添加tomcat用户，然后就可以在Tomcat主页中进入Tomcat Manager页面了；
+- web.xml：部署描述符文件，这个文件中注册了很多MIME类型，即文档类型。这些MIME类型是客户端与服务器之间说明文档类型的，如用户请求一个html网页，那么服务器还会告诉客户端浏览器响应的文档是text/html类型的，这就是一个MIME类型。客户端浏览器通过这个MIME类型就知道如何处理它了。当然是在浏览器中显示这个html文件了。但如果服务器响应的是一个exe文件，那么浏览器就不可能显示它，而是应该弹出下载窗口才对。MIME就是用来说明文档的内容是什么类型的！
+
+修改群殴自己拍卖行init-param中的参数可以看到Web下所有的工程。
+
+- context.xml：对所有应用的统一配置，通常我们不会去配置它。
+
+（3）  lib：Tomcat的类库，里面是一大堆jar文件。如果需要添加Tomcat依赖的jar文件，可以把它放到这个目录中，当然也可以把应用依赖的jar文件放到这个目录中，这个目录中的jar所有项目都可以共享之，但这样你的应用放到其他Tomcat下时就不能再共享这个目录下的jar包了，所以建议只把Tomcat需要的jar包放到这个目录下；
+
+（4） logs：这个目录中都是日志文件，记录了Tomcat启动和关闭的信息，如果启动Tomcat时有错误，那么异常也会记录在日志文件中。
+
+（5） temp：存放Tomcat的临时文件，这个目录下的东西可以在停止Tomcat后删除！
+
+（6）  webapps：存放web项目的目录，其中每个文件夹都是一个项目；如果这个目录下已经存在了目录，那么都是tomcat自带的。项目。其中ROOT是一个特殊的项目，在地址栏中没有给出项目目录时，对应的就是ROOT项目。http://localhost:8080/examples，进入示例项目。其中examples就是项目名，即文件夹的名字。
+
+（7）  work：运行时生成的文件，最终运行的文件都在这里。通过webapps中的项目生成的！可以把这个目录下的内容删除，再次运行时会生再次生成work目录。当客户端用户访问一个JSP文件时，Tomcat会通过JSP生成Java文件，然后再编译Java文件生成class文件，生成的java和class文件都会存放到这个目录下。(存放由jsp翻译成的java,以及编辑成的class文件jsp  ->java ->class)
+
+（8）  LICENSE：许可证。
+
+（9）  NOTICE：说明文件。
+
+# 二 Eclipse、Tomcat、Web集合
+
+## 2.1 Eclipse配置Tomcat
+
+此时无需点击`startup.bat`
+
+配置步骤：
+
+思路：先创建Server，再把
+
+前提：环境变量中必须有`JAVA_HOME`，这是在配置sdk时进行的。
+
+1. 首次配置的时候，需要先把Tomcat导入Eclipse。进入Eclipse后在菜单栏中点击：Prefrence--Sercer--Runtime Environment---Add
+
+   ![](https://raw.githubusercontent.com/FermHan/tuchuang/master/20191005222548.png)
+
+   
+
+   选择Add后再Apache中选择对应的Tomcat版本，下一步。
+
+   ![](https://raw.githubusercontent.com/FermHan/tuchuang/master/20191005222655.png)
+
+   ![](https://raw.githubusercontent.com/FermHan/tuchuang/master/20191005223146.png)
+
+   点击Fiinish后的效果就是图1的效果。
+
+
+
+## 2.2 创建一个Web项目（Web应用）
+
+菜单栏点击：File---New--Ohter--Dynamic Web Project
+
+![](https://raw.githubusercontent.com/FermHan/tuchuang/master/20191005225040.png)
+
+![](https://raw.githubusercontent.com/FermHan/tuchuang/master/20191005225651.png)
+
+
+
+
+
+
+
+
+
+![](https://raw.githubusercontent.com/FermHan/tuchuang/master/20191005225919.png)
+
+![](https://raw.githubusercontent.com/FermHan/tuchuang/master/20191005230210.png)
+
+## 2.3 创建Web Server，将创建好的Web项目部署到Tomcat中
+
+打开Server视图
+
+![](https://raw.githubusercontent.com/FermHan/tuchuang/master/20191005230918.png)
+
+![](https://raw.githubusercontent.com/FermHan/tuchuang/master/20191005231218.png)
+
+> 注在上步点击`No Server...`的意义与New的操作等价：在Eclipse的菜单File中选择New---Other---搜索到Server。如下图
+>
+> ![](https://raw.githubusercontent.com/FermHan/tuchuang/master/20191005223848.png)
+
+
+
+![](https://raw.githubusercontent.com/FermHan/tuchuang/master/20191005224023.png)
+
+![](https://raw.githubusercontent.com/FermHan/tuchuang/master/20191005231842.png)
+
+![](https://raw.githubusercontent.com/FermHan/tuchuang/master/20191005234643.png)
+
+返回下方的“Servers”面板，右键单击该面板中的“Tomcat v8.0 Server at localhost”节点，在弹出的快捷菜单中单击“Start”，即可启动指定的Web服务器。如果此时直接启动访问http://localhost:8080/day1 ，会发现会报404的错误。这是因为我们没有添加主页，在WebContent文件夹下面添加主页`index.jsp`，内容为：
+
+```JSP
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+</head>
+<body>
+<h1>123123</h1>
+</body>
+</html>
+```
+
+显示结果如下：
+
+![](https://raw.githubusercontent.com/FermHan/tuchuang/master/20191006000446.png)
+
+注意点：
+
+- 为什么我们输入的是day1而不是WebTest1呢？因为我们在2.2的这张图中把项目映射了，如果之前没有修改的话，输入项目名可以访问，改了之后不能用项目名访问了。![](https://raw.githubusercontent.com/FermHan/tuchuang/master/20191005230210.png)
+- 上图还有一个细节是WebContent，不管你修改为什么，我们的文件都是放在修改后的文件中，才能访问到，不加文件的话默认访问的就是`index.jsp`
+- Tomcat修改xml文件后需要restart
+
+## 2.4 Eclipse使用Tomcat的原理
+
+（1）  当我们使用Eclipse将项目部署到Tomcat的时，我们发现，在Tomcat下的webapps目录下并没有我们创建好的项目，但是当通过Eclipse启动服务器后，项目却真的可以访问到，这是为什么呢？
+
+（2） 实际上，Eclipse在使用Tomcat时，并没有将项目部署到Tomcat的目录下，而是在其工作空间中，创建了一个Tomcat的镜像，Eclipse启动的Tomcat是他自己配置的镜像。
+
+（3）  Eclipse镜像所在目录
+
+`Eclipse的工作空间目录\.metadata\.plugins\org.eclipse.wst.server.core\tmp0`
+
+（4）  在这个目录下，我们会发现一个和Tomcat安装目录几乎一模一样的目录结构。项目在问题wtpwebapps文件夹中
+
+（5）  在这里Eclipse中Tomcat镜像配置文件也是独立的，而我们所创建的项目是部署到wtpwebapps目录下的，这样做的好处是Eclipse中Tomcat和我们本机的Tomcat可以保持相互独立，不会影响彼此。
+
+
+
+### 2.5 Web应用的目录结构
+
+项目在 webapps目录
+
+```WEB
+<webDemo项目名>
+|	WebContent项目内容
+    | - WEB-INF //Web容器会包含WEB-INF文件下的内容，但客户端浏览器无法访问WEB-INF下的内容
+    |	| - classes //保存单个*.class文件
+    |	| - lib //保存打包后的JAR文件
+    |	| - web.xml
+    | - <a.jsp>//这里存放任意多个JSP界面，与WEB-INF同级
+```
+
+web.xml文件内容
+
+```XML
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://xmlns.jcp.org/xml/ns/javaee" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd" id="WebApp_ID" version="4.0">
+  <display-name>项目名</display-name>
+  <welcome-file-list><!--//默认访问的列表,第一个找不到则找第二个...-->
+    <welcome-file>index.html</welcome-file>
+    <welcome-file>index.htm</welcome-file>
+    <welcome-file>index.jsp</welcome-file>
+    <welcome-file>default.html</welcome-file>
+    <welcome-file>default.htm</welcome-file>
+    <welcome-file>default.jsp</welcome-file>
+  </welcome-file-list>
+</web-app>
+```
+
+
+
+# 三.浏览器与服务器之间的请求与响应
+
+## 1.HTTP协议简介
+
+1.1.HTTP协议：就是指的通信双方所必须遵守的报文规则！
+1.2.报文：客户端与服务端通信时传输的内容我们称之为报文。
+
+报文格式：
+         ①报文首部
+                 报文首行
+                 报文头部
+        ② 空行
+        ③报文主体
+
+报文分类： 
+         ① 请求报文
+             get请求报文
+             post请求报文
+        ② 响应报文
+
+（1）get请求报文
+
+![img](https://images2017.cnblogs.com/blog/1273365/201711/1273365-20171113214420124-188794980.png)
+
+```JAVA'
+GET /bookstore01/b.html?username=dfadf&pwd=dfa HTTP/1.1
+        //报文首行
+           请求方式  请求路径?参数键值对&
+
+​        //报文头部【键值对格式】  
+​        Host: localhost:8080  //请求目标ip地址和端口号
+​        User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:27.0) Gecko/20100101Firefox/27.0//当前浏览器
+​        
+​        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+​        //浏览器告诉服务器，浏览器可以接收什么格式的文件
+​        
+​        Accept-Language: zh-cn,zh;q=0.8,en-us;q=0.5,en;q=0.3
+​        //可以判断你是在是哪个位置
+​        zh-cn:简体中文
+​        en-us：美式英语
+​             
+​        Accept-Encoding: gzip, deflate
+​        //浏览器告诉服务器浏览器可以识别的解压方式
+​        
+​        Referer: http://localhost:8080/bookstore01/index.html
+​        Referer:指的是当前页面是从哪个页面跳转过来的
+​             
+​        Connection: keep-alive
+​        //keep-alive:表示浏览器告诉服务器这是一个长连接
+
+​            get请求没有空行和报文主体,get请求是通过地址栏传递参数的！
+```
+
+
+
+　　
+
+（2）post请求报文
+
+![img](https://images2017.cnblogs.com/blog/1273365/201711/1273365-20171113214747531-1634277585.png)
+
+ 
+
+​        
+​    POST /bookstore01/b.html HTTP/1.1
+​            //请求首行
+​               请求方式  请求路径   请求协议/版本号   
+​    
+    	Host: localhost:8080
+        User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:27.0) Gecko/20100101 Firefox/27.0
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        Accept-Language: zh-cn,zh;q=0.8,en-us;q=0.5,en;q=0.3
+        Accept-Encoding: gzip, deflate
+        Referer: http://localhost:8080/bookstore01/index.html
+        Connection: keep-alive
+         post请求有空行和请求体， post请求通过请求体传递请求参数！
+
+（3）get请求和post请求的区别
+
+　  ①get请求通过地址栏传递参数，post请求通过请求体传递请求参数，相对安全一点！
+     ②get请求没有空行和请求体，post请求有
+     ③get请求传递的字符是有限制的，255个字符，而post请求通过请求体传递参数，没有大小限制
+
+总结：通常只有在form表单中，我们使用的是post请求，而在其它地方都是get请求！
+
+(4)几种常见的响应状态码
+    200：响应成功
+    302: 重定向
+
+​	403：权限不足 （如果访问a目录，但是a目录设置 不可见）
+
+​    404：请求路径错误 资源不存在 
+​    405：请求方式有问题  以4xx开头的响应状态码，都表示是浏览器端的错误
+​    500：服务器端的错误，表示自己写的java，jsp代码有bug

@@ -1,0 +1,401 @@
+[TOC]
+
+# 第1章  Spring概述 
+
+## 1.1 Spring概述 
+
+1)        Spring是一个开源框架 
+
+2)        Spring为简化企业级开发而生，使用Spring，JavaBean就可以实现很多以前要靠EJB才能实现的功能。同样的功能，在EJB中要通过繁琐的配置和复杂的代码才能够实现，而在Spring中却非常的优雅和简洁。 
+
+3)        Spring是一个**IOC**(DI)和**AOP**容器框架。
+
+4)        Spring的优良特性
+
+ ①  **非侵入式**：基于Spring开发的应用中的对象可以不依赖于Spring的API
+
+> 什么叫侵入式：
+>
+> 你写的应用是否耦合于你使用的技术。比如使用spring的时候，完成某些功能的时候，有没有强制性地要求实现它的一些借口或者继承他的一些类。如果有，就是侵入式的。即如果已经使用这个代码，没有spring是没法用的。如果使用的功能，无需实现它的一些接口，那么就是非侵入式的。
+>
+> 还有一个叫法是轻量级/重量级。非侵入式是轻量级的，侵入式是重量级的。
+
+ ②  **依赖注入**：DI——Dependency Injection，反转控制(IOC)最经典的实现。
+
+ ③  **面向切面编程**：Aspect Oriented Programming——AOP
+
+ ④  **容器**：Spring是一个容器，因为它包含并且管理应用对象的生命周期。
+
+> tomcat也是一个容器。
+>
+> spring中不再使用new来创建对象了，而是交给spring管理，所以称spring是一个巨大的容器，这个容器的底层是一个工厂。
+
+ **⑤**  **组件化**：Spring实现了使用简单的组件配置组合成一个复杂的应用。在 Spring 中可以使用XML和Java注解组合这些对象。
+
+5)        **一站式**：在IOC和AOP的基础上可以整合各种企业应用的开源框架和优秀的第三方类库（实际上Spring 自身也提供了表述层的SpringMVC和持久层的Spring JDBC）。（实际上一般使用mybatis代替Spring JDBC）
+
+6)        Spring模块
+
+![](https://raw.githubusercontent.com/FermHan/tuchuang/master/20191007164714.png)
+
+下面的IoC，右面是Spring MVC，左面是JDBC。
+
+## 1.2 安装Spring插件【了解】
+
+在eclipse--help中查看eclipse版本，然后去
+
+- 版本3下载地址：https://spring.io/tools3/sts/all
+
+- 版本4下载地址：https://spring.io/tools
+
+注意下的文件前缀是`springsource-tool-suite`而不是`spring-tool-suite`，安的是源码。
+
+然后在Eclipse中点Help----Install New Software...，然后点Add...---Archive（无需解压，如果解压了可以使用Local按钮），找到已经下载的包，点Add，然后选中4个带IDE的选项
+
+![](https://raw.githubusercontent.com/FermHan/tuchuang/master/20191007183105.png)
+
+一路Next--agree协议--Finish。等右下角进度条完成会重启Eclipse。然后会发现Welcome页面多了个Spring IDE选项。Prefrence里多了Spring菜单。
+
+## 1.3 搭建Spring运行时环境
+
+1)        加入JAR包
+
+4 + 1  ： 4个核心（beans、core、context、expression） + 1个依赖（commons-loggins...jar）
+
+下包地址：
+
+- 核心：https://repo.spring.io/libs-release-local/org/springframework/spring/
+
+- 依赖（点`jar 60k`或者选择其他版本下即可）：https://mvnrepository.com/artifact/commons-logging/commons-logging/1.2 
+
+① Spring自身JAR包：spring-framework-版本号.RELEASE\libs目录下
+
+```
+spring-beans-版本号.RELEASE.jar
+spring-context-版本号.RELEASE.jar
+spring-core-版本号.RELEASE.jar
+spring-expression-版本号.RELEASE.jar
+```
+
+②` commons-logging-1.1.1.jar`
+
+下完放到Eclipse中Web项目的WebRoot--Web-info---lib文件夹下（或者放到java项目lib下）（放的4个核心文件是`spring-framework-版本号.RELEASE\libs`目录下的`spring-beans-版本号RELEASE.jar`格式的，别的后缀的不要添加进去），添加后全部选中右键Build Path--Configure Build Path，然后这些jar包就出现在了Refrenced Libararies下。
+
+2)        在Spring Tool Suite工具中通过如下步骤创建Spring的配置文件
+
+​         ① File->New->Spring Bean Configuration File
+
+​         ② 为文件取名字 例如：applicationContext.xml
+
+创建好后，其文件内容如下
+
+```XML
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+</beans>
+```
+
+
+
+## 1.4 HelloWorld
+
+1)        目标：使用Spring创建对象，为属性赋值
+
+2)        创建Student类
+
+3)        创建Spring配置文件
+
+```java
+package com.atguigu.spring.helloWorld;
+
+public class Person {
+	
+	private String  name ;  // 成员变量
+	
+	public Person( ) {
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName2(String name) {
+		this.name = name;
+	}
+
+	@Override
+	public String toString() {
+		return "Person [name=" + name + "]";
+	} 
+	
+	//自定义方法
+	public  void  sayHello() {
+		System.out.println("My Name is " + name );
+	}
+}
+```
+
+
+
+最终application.xml文件的内容
+
+```XML
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd">
+
+	<!-- 配置bean ：必看
+		  配置方式:  基于xml的方式 ,使用的全类名的方式.
+		 <bean>: 受Spring管理的一个javaBean对象. 
+		 	id:  <bean>的唯一标识. 在整个IOC容器中唯一不重复. 
+		 	class: 指定javaBean的全类名. 目的是通过【反射】创建对象。 
+		 		   Class cls = Class.forName("com.atguigu.spring.helloWorld.Person");
+		 		   Object obj = cls.newInstance();   必须提供无参数构造器. 
+		 <property>: 给对象的属性赋值
+		  	name: 指定属性名  , 指定set风格的属性名. 
+		  	value:指定属性值 	
+	-->
+	<bean id="person"  class="com.atguigu.spring.helloWorld.Person">
+		<property name="name2" value="HanMeiMei"></property>
+	</bean>
+	
+	<bean id="person1"  class="com.atguigu.spring.helloWorld.Person">
+		<property name="name2" value="LiLei"></property>
+	</bean>
+
+</beans>
+
+```
+
+（其实如果想阅读反射的内容，可以查看https://blog.csdn.net/huangliniqng/article/details/88554510）
+
+xml文件解释在xml文件注释中有解释
+
+```XML
+	<!-- 使用bean元素定义一个由IOC容器创建的对象 -->
+	<!-- class属性指定用于创建bean的全类名 -->
+	<!-- id属性指定用于引用bean实例的标识 -->
+```
+
+
+
+main函数：
+
+```JAVA
+package com.atguigu.spring.helloWorld;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public class Main {
+	public static void main(String[] args) {
+		// 获取到Person对象. 
+		
+		//1. 创建Spring的IOC容器对象
+		ApplicationContext ctx = 
+				new ClassPathXmlApplicationContext("applicationContext.xml");
+		
+		// 2.1 根据id="Person"创建了一个对象
+		//Person person = (Person)ctx.getBean("person");
+        // person.sayHello();
+        
+        // 2.2 
+		//Person person = ctx.getBean(Person.class);
+        // person.sayHello();
+        
+        
+		//expected single matching bean but found 2: person,person1
+		Person person = ctx.getBean("person1",Person.class);//根据id=Person1
+		person.sayHello();
+	}
+}
+```
+
+
+
+```java
+	<bean id="student" class="com.atguigu.helloworld.bean.Student">
+		<!-- 使用property子元素为bean的属性赋值 -->
+		<property name="studentId" value="1001"/>
+		<property name="stuName" value="Tom2015"/>
+		<property name="age" value="20"/>
+	</bean>
+```
+4)        测试：通过Spring的IOC容器创建Student类实例
+
+```JAVA
+//1.创建IOC容器对象
+ApplicationContext iocContainer = 
+		new ClassPathXmlApplicationContext("helloworld.xml");
+//2.根据id值获取bean实例对象
+Student student = (Student) iocContainer.getBean("student");
+//3.打印bean
+System.out.println(student);
+```
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```JAVA
+package test.helloworld;
+
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public class Main {
+	public static void main(String[] args) {
+		
+//		HelloWorld helloWorld = new HelloWorld();
+//		helloWorld.setUser("Tom");
+//		helloWorld.hello(); 
+		
+		//1. 创建 Spring 的 IOC 容器
+		ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("beans.xml");
+		
+		//2. 从 IOC 容器中获取 bean 的实例
+		HelloWorld helloWorld = (HelloWorld) ctx.getBean("helloWorld3");
+		
+		//根据类型来获取 bean 的实例: 要求在  IOC 容器中只有一个与之类型匹配的 bean, 若有多个则会抛出异常. 
+		//一般情况下, 该方法可用, 因为一般情况下, 在一个 IOC 容器中一个类型对应的 bean 也只有一个. 
+//		HelloWorld helloWorld1 = ctx.getBean(HelloWorld.class);
+		
+		//3. 使用 bean
+		helloWorld.hello();
+		
+		Car car = (Car) ctx.getBean("car");
+		System.out.println(car);
+		
+		Car car2 = (Car) ctx.getBean("car2");
+		System.out.println(car2);
+		
+		//4. 测试使用集合属性
+		User user = (User) ctx.getBean("user5");
+		System.out.println(user);
+	}
+	
+}
+
+```
+
+Spring中 的Bean配置
+
+```
+IOC & DI 概述
+配置 bean
+	配置形式：基于 XML 文件的方式；基于注解的方式
+	Bean 的配置方式：通过全类名（反射）、通过工厂方法（静态工厂方法 & 实例工厂方法）、FactoryBean
+	IOC 容器 BeanFactory & ApplicationContext 概述
+	依赖注入的方式：属性注入；构造器注入
+	注入属性值细节
+	自动转配
+	bean 之间的关系：继承；依赖
+	bean 的作用域：singleton；prototype；WEB 环境作用域
+	使用外部属性文件
+	spEL 
+	IOC 容器中 Bean 的生命周期
+	Spring 4.x 新特性：泛型依赖注入
+```
+
+IOC 和 DI
+
+- IOC(Inversion of Control)反转控制：其思想是反转资源获取的方向. 传统的资源查找方式要求组件向容器发起请求查找资源. 作为回应, 容器适时的返回资源. 而应用了 IOC 之后, 则是容器主动地将资源推送给它所管理的组件, 组件所要做的仅是选择一种合适的方式来接受资源. 这种行为也被称为查找的被动形式
+- DI(Dependency Injection)依赖注入 — IOC 的另一种表述方式：即组件以一些预先定义好的方式(例如: setter 方法)接受来自如容器的资源注入. 相对于 IOC 而言，这种表述更直接
+
+```JAVA
+class A{}
+class B{
+  	private A a;
+	public void setA(A a){
+		this.a = a;
+	}
+}
+需求：从容器中获取 B 对象，并使 B 对象的 a 属性被赋值为容器中 A 对象的引用
+传统：
+A a = getA();
+B b = getB();
+b.setA(a);
+
+IOC容器：
+B b = getB();
+```
+
+## IoC
+
+### 2 目标类
+
+- 提供UserService接口和实现类
+- 获得UserService实现类的实例
+
+之前开发中，直接new一个对象即可。
+
+学习spring之后，将由Spring创建对象实例--> IoC 控制反转（Inverse of  Control）之后需要实例对象时，从spring工厂（容器）中获得，需要将实现类的全限定名称配置到xml文件中
+
+新建InterFace，包名com.han.hello_ioc，Name：UserService
+
+```JAVA
+package com.itheima.a_ioc;
+
+public interface UserService {
+	public void addUser();
+}
+```
+
+```JAVA
+package com.itheima.a_ioc;
+
+public class UserServiceImpl {
+	public void addUser(){
+		System.out.println("a ico add user");
+	}
+}
+```
+
+### 3 配置文件：
+
+- 位置：任意，开发中一般在classpath下（src）
+
+- 名称：任意，开发中常用applicationContext.xml
+
+- 内容：添加schema约束
+
+​       约束文件位置：spring-framework-3.2.0.RELEASE\docs\spring-framework-reference\html\ xsd-config.html(未找到)
+
+```XML
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	   http://www.springframework.org/schema/beans/spring-beans.xsd">
+	<!-- 配置service 
+		<bean> 配置需要创建的对象
+			id ：用于之后从spring容器获得实例时使用的。起个名
+			class ：需要创建实例的全限定类名。我们要把UserServiceImpl交给spring
+	-->
+	<bean id="userServiceId" class="com.itheima.a_ioc.UserServiceImpl"></bean>
+</beans>
+```
+
