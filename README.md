@@ -1,5 +1,5 @@
 # Learning-Notes
-注：md文件，Typora书写，md兼容程度github=CSDN>知乎，若有不兼容处麻烦移步其他平台，github文档供下载。
+注：md文件，Typora书写，md兼容程度github=CSDN>知乎，若有不兼容处麻烦移步其他平台，github文档供下载。github平台还有些JavaWeb笔记。欢迎star。
 
 上传在github：https://github.com/FermHan/Learning-Notes 
 
