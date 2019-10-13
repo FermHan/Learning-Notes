@@ -1,0 +1,243 @@
+# 第3章 AOP前奏 
+
+## 3.1 提出问题
+
+### 3.1.1 情景：数学计算器  
+
+1)        要求
+
+​                  ①执行加减乘除运算
+
+​         ②日志：在程序执行期间追踪正在发生的活动
+
+​         ③验证：希望计算器只能处理正数的运算
+
+
+
+​                    ![](https://raw.githubusercontent.com/FermHan/tuchuang/master/20191009231337.png)                              
+
+2)        常规实现
+
+```JAVA
+package com.atguigu.spring.aop.before;
+
+public class ArithmeticCalculatorImpl implements ArithmeticCalculator {
+
+	@Override
+	public int add(int i, int j) {
+		System.out.println("日志记录==> The method add begin with ["+i+","+j+"]");
+		int result = i + j ; 
+		System.out.println("日志记录==>  The method add ends with : " + result );
+		return result ; 
+	}
+
+	@Override
+	public int sub(int i, int j) {
+		System.out.println("日志记录==>  The method sub begin with ["+i+","+j+"]");
+		int result = i - j ; 
+		System.out.println("日志记录==>  The method sub ends with : " + result );
+		return result ; 
+	}
+
+	@Override
+	public int mul(int i, int j) {
+		System.out.println("日志记录==>  The method mul begin with ["+i+","+j+"]");
+		int result = i * j ; 
+		System.out.println("日志记录==>  The method mul ends with : " + result );
+		return result ; 
+	}
+
+	@Override
+	public int div(int i, int j) {
+		System.out.println("日志记录==>  The method div begin with ["+i+","+j+"]");
+		int result = i / j ; 
+		System.out.println("日志记录==>  The method div ends with : " + result );
+		return result ;
+	}
+}	
+```
+
+
+
+3)        问题
+
+①代码混乱：越来越多的非业务需求(日志和验证等)加入后，原有的业务方法急剧膨胀。每个方法在处理核心逻辑的同时还必须兼顾其他多个关注点。
+
+②代码分散: 以日志需求为例，只是为了满足这个单一需求，就不得不在多个模块（方法）里多次重复相同的日志代码。如果日志需求发生变化，必须修改所有模块。
+
+ 
+
+## 3.2 动态代理
+
+### 3.2.1 动态代理的原理
+
+代理设计模式的原理：**使用一个代理将对象包装起来**，然后用该代理对象取代原始对象。任何对原始对象的调用都要通过代理。代理对象决定是否以及何时将方法调用转到原始对象上。
+
+原始对象 别名：目标对象
+
+例子：厂家与代理经销。函数换个名字？
+
+代理只能增强，不能取代功能。如果没有代理对象，找不到原始对象。
+
+
+
+   ![](https://raw.githubusercontent.com/FermHan/tuchuang/master/20191009231505.png)
+
+### 3.2.2 动态代理的方式
+
+1)        基于接口实现动态代理： JDK动态代理
+
+2)        基于继承实现动态代理： Cglib、Javassist动态代理 
+
+## 3.3 数学计算器的改进
+
+### 3.3.1 日志处理器
+
+```JAVA
+--------------ArithmeticCalculatorProxy.java------------
+package com.atguigu.spring.aop.proxy;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.util.Arrays;
+
+/**
+ * 生成代理对象。
+ * 
+ * JDK的动态代理:
+ * 	 1. Proxy : 是所有动态代理类的父类， 专门用户生成代理类或者是代理对象  
+ * 		 	public static Class<?> getProxyClass(ClassLoader loader,
+                                         Class<?>... interfaces)
+                            用于生成代理类的Class对象. 
+                                         
+ * 			public static Object newProxyInstance(ClassLoader loader,
+                                          Class<?>[] interfaces,
+                                         InvocationHandler h)
+                            用于生成代理对象                            
+                                         
+ *   2. InvocationHandler :完成动态代理的整个过程.
+ *   		public Object invoke(Object proxy, Method method, Object[] args)
+        	throws Throwable; 
+ *   		
+ */
+public class ArithmeticCalculatorProxy {
+	//动态代理:    目标对象     如何获取代理对象      代理要做什么 
+	
+	//目标对象
+	private  ArithmeticCalculator  target ; 
+	
+	
+	public ArithmeticCalculatorProxy(ArithmeticCalculator target) {
+		this.target = target ; 
+	}
+	
+	
+	//获取代理对象的方法
+	public Object  getProxy() {
+		
+		//代理对象
+		Object  proxy ; 
+		
+		/**
+		 * loader:  ClassLoader对象。 类加载器对象.  帮我们加载动态生成的代理类。 
+		 * 
+		 * interfaces: 接口们.  提供目标对象的所有的接口.  目的是让代理对象保证与目标对象都有接口中想同的方法. 
+		 * 			
+		 * h:  InvocationHandler类型的对象. 
+		 */
+		ClassLoader loader = target.getClass().getClassLoader();
+		
+		Class []  interfaces = target.getClass().getInterfaces();
+		
+		
+		proxy = Proxy.newProxyInstance(loader, interfaces, new InvocationHandler() {
+			/**
+			 * invoke:  代理对象调用代理方法， 会回来调用invoke方法。
+			 * 
+			 * proxy: 代理对象 ， 在invoke方法中一般不会使用. 
+			 * 
+			 * method: 正在被调用的方法对象. 
+			 * 
+			 * args:   正在被调用的方法的参数. 
+			 */
+			public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+				
+				//将方法的调用转回到目标对象上. 
+				
+				//获取方法的名字
+				String methodName = method.getName();
+				//记录日志
+				System.out.println("LoggingProxy==> The method " + methodName+" begin with "+ Arrays.asList(args));
+				Object result = method.invoke(target, args);  // 目标对象执行目标方法. 相当于执行ArithmeticCalculatorImpl中的+ - * /
+				
+				//记录日志
+				System.out.println("LoggingProxy==> The method " + methodName  +" ends with :" +result   );
+				return result ;
+			}
+		});
+		
+		return proxy ;
+	}
+	
+}
+
+
+/**
+ * 模拟底层生成的动态代理类
+ */
+
+class $Proxy0  extends Proxy  implements ArithmeticCalculator{
+
+	protected $Proxy0(InvocationHandler h) {
+		super(h);
+	}
+
+	@Override
+	public int add(int i, int j) {
+	//	return  super.h.invoke(this,方法对象,方法参数);
+		return 0 ;
+	}
+
+	@Override
+	public int sub(int i, int j) {
+		return 0;
+	}
+
+	@Override
+	public int mul(int i, int j) {
+		return 0;
+	}
+
+	@Override
+	public int div(int i, int j) {
+		return 0;
+	}
+	
+}
+```
+
+
+
+### 3.3.2 验证处理器
+
+   
+
+### 3.3.3 测试代码
+
+   
+
+###        3.3.4 保存生成的动态代理类
+
+
+
+
+
+
+
+
+
+
+
+
+
